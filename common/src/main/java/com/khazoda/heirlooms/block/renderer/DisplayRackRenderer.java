@@ -22,13 +22,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public class DisplayRackRenderer implements BlockEntityRenderer<DisplayRackBlockEntity, DisplayRackRenderState> {
+public class DisplayRackRenderer implements BlockEntityRenderer<DisplayRackBlockEntity, DisplayRenderState> {
 
   private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
+  private static final Object2BooleanMap<Block> BLOCK_COLLISION_CACHE = new Object2BooleanOpenHashMap<>();
   private final BlockModelResolver blockModelResolver;
   private final ItemModelResolver itemModelResolver;
-
-  private static final Object2BooleanMap<Block> BLOCK_COLLISION_CACHE = new Object2BooleanOpenHashMap<>();
 
   public DisplayRackRenderer(BlockEntityRendererProvider.Context context) {
     this.blockModelResolver = context.blockModelResolver();
@@ -36,18 +35,17 @@ public class DisplayRackRenderer implements BlockEntityRenderer<DisplayRackBlock
   }
 
   @Override
-  public DisplayRackRenderState createRenderState() {
-    return new DisplayRackRenderState();
+  public DisplayRenderState createRenderState() {
+    return new DisplayRenderState();
   }
 
   @Override
-  public void extractRenderState(DisplayRackBlockEntity blockEntity, DisplayRackRenderState renderState, float partialTick, Vec3 cameraPosition, net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+  public void extractRenderState(DisplayRackBlockEntity blockEntity, DisplayRenderState renderState, float partialTick, Vec3 cameraPosition, net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay breakProgress) {
     BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
 
     renderState.facing = blockEntity.getBlockState().getValue(DisplayRackBlock.FACING);
     renderState.block.clear();
     renderState.item = null;
-    renderState.isBlockItem = false;
 
     ItemStack stack = blockEntity.getItem(0);
     if (!stack.isEmpty()) {
@@ -71,13 +69,11 @@ public class DisplayRackRenderer implements BlockEntityRenderer<DisplayRackBlock
         renderState.item = new ItemStackRenderState();
         this.itemModelResolver.updateForTopItem(renderState.item, stack, ItemDisplayContext.FIXED, blockEntity.getLevel(), null, 0);
       }
-
-      renderState.isBlockItem = useBlockRender;
     }
   }
 
   @Override
-  public void submit(DisplayRackRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
+  public void submit(DisplayRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
     if (renderState.block.isEmpty() && renderState.item == null) return;
 
     poseStack.pushPose();

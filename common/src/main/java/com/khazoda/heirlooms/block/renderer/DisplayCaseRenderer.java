@@ -18,12 +18,9 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
-public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlockEntity, DisplayCaseRenderState> {
+public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlockEntity, DisplayRenderState> {
 
   private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
-  private final BlockModelResolver blockModelResolver;
-  private final ItemModelResolver itemModelResolver;
-
   private static final org.joml.Quaternionf[] ROTATIONS = new org.joml.Quaternionf[4];
 
   static {
@@ -33,18 +30,21 @@ public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlock
     ROTATIONS[3] = Axis.YP.rotationDegrees(270).mul(Axis.XP.rotationDegrees(90.0F)); // East
   }
 
+  private final BlockModelResolver blockModelResolver;
+  private final ItemModelResolver itemModelResolver;
+
   public DisplayCaseRenderer(BlockEntityRendererProvider.Context context) {
     this.blockModelResolver = context.blockModelResolver();
     this.itemModelResolver = context.itemModelResolver();
   }
 
   @Override
-  public DisplayCaseRenderState createRenderState() {
-    return new DisplayCaseRenderState();
+  public DisplayRenderState createRenderState() {
+    return new DisplayRenderState();
   }
 
   @Override
-  public void extractRenderState(DisplayCaseBlockEntity blockEntity, DisplayCaseRenderState renderState, float partialTick, Vec3 cameraPosition, net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay breakProgress) {
+  public void extractRenderState(DisplayCaseBlockEntity blockEntity, DisplayRenderState renderState, float partialTick, Vec3 cameraPosition, net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay breakProgress) {
     BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
 
     renderState.facing = blockEntity.getBlockState().getValue(DisplayCaseBlock.FACING);
@@ -63,7 +63,7 @@ public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlock
   }
 
   @Override
-  public void submit(DisplayCaseRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
+  public void submit(DisplayRenderState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
     if (renderState.block.isEmpty() && renderState.item == null) return;
 
     poseStack.pushPose();
