@@ -12,8 +12,7 @@
     "MixinItemCombinerMenu",
     "MixinInventory",
     "MixinResultSlot",
-    "MixinSmithingMenu",
-    "MixinItemStack"
+    "MixinSmithingMenu"
   ],
   "client": [
     "ClientMixinGUI"
