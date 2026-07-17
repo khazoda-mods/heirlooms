@@ -1,12 +1,14 @@
 package com.khazoda.heirlooms.mixin;
 
 import com.khazoda.heirlooms.mixinutils.HeirloomsState;
+import com.khazoda.heirlooms.mixinutils.SlotResultModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.MerchantMenu;
+import net.minecraft.world.inventory.MerchantResultSlot;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
@@ -31,11 +33,17 @@ public abstract class MixinAbstractContainerMenu {
   @Inject(method = "clicked", at = @At("HEAD"))
   private void heirlooms$beginOutputCapture(int slotIndex, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
     HeirloomsState.clearCapturingPlayer();
-    if (slotIndex < 0 || (Object) this instanceof AnvilMenu || (Object) this instanceof GrindstoneMenu || (Object) this instanceof MerchantMenu)
-      return;
+    if (slotIndex < 0 || (Object) this instanceof AnvilMenu || (Object) this instanceof GrindstoneMenu) return;
 
     try {
       Slot slot = this.getSlot(slotIndex);
+      if ((Object) this instanceof MerchantMenu) {
+        if (slot instanceof MerchantResultSlot && slot.hasItem()) {
+          HeirloomsState.setCapturingPlayer(player, SlotResultModifier.ACQUISITION_BOUGHT);
+        }
+        return;
+      }
+
       if (slot != null && slot.hasItem() && heirlooms$isCraftingOutput(slot, slot.getItem())) {
         HeirloomsState.setCapturingPlayer(player);
       }
@@ -50,6 +58,6 @@ public abstract class MixinAbstractContainerMenu {
 
   @Inject(method = "setCarried", at = @At("HEAD"))
   private void heirlooms$captureCarried(ItemStack stack, CallbackInfo ci) {
-    HeirloomsState.captureCrafted(stack);
+    HeirloomsState.captureAcquired(stack);
   }
 }

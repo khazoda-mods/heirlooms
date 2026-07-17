@@ -4,25 +4,34 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 public class HeirloomsState {
-  private static final ThreadLocal<Player> CAPTURING_PLAYER = new ThreadLocal<>();
+  private static final ThreadLocal<Capture> CAPTURE = new ThreadLocal<>();
 
   public static void setCapturingPlayer(Player player) {
+    setCapturingPlayer(player, SlotResultModifier.ACQUISITION_CRAFTED);
+  }
+
+  public static void setCapturingPlayer(Player player, String acquisitionKind) {
     if (player == null) {
       clearCapturingPlayer();
     } else {
-      CAPTURING_PLAYER.set(player);
+      CAPTURE.set(new Capture(player, acquisitionKind));
     }
   }
 
   public static void clearCapturingPlayer() {
-    CAPTURING_PLAYER.remove();
+    CAPTURE.remove();
   }
 
   public static boolean isCapturing(Player player) {
-    return CAPTURING_PLAYER.get() == player;
+    Capture capture = CAPTURE.get();
+    return capture != null && capture.player() == player;
   }
 
-  public static boolean captureCrafted(ItemStack stack) {
-    return SlotResultModifier.handleCraftedItem(CAPTURING_PLAYER.get(), stack);
+  public static boolean captureAcquired(ItemStack stack) {
+    Capture capture = CAPTURE.get();
+    return capture != null && SlotResultModifier.handleAcquiredItem(capture.player(), stack, capture.acquisitionKind());
+  }
+
+  private record Capture(Player player, String acquisitionKind) {
   }
 }

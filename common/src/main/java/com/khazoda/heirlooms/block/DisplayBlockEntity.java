@@ -1,5 +1,6 @@
 package com.khazoda.heirlooms.block;
 
+import com.khazoda.heirlooms.HeirloomsComponentMigration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -69,6 +70,7 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
 
   @Override
   public void setItem(int slot, ItemStack stack) {
+    migrateLegacyAcquisition(stack);
     this.items.set(slot, stack);
     stack.limitSize(this.getMaxStackSize(stack));
     this.inventoryChanged();
@@ -94,6 +96,7 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
     super.loadAdditional(input);
     this.items.clear();
     ContainerHelper.loadAllItems(input, this.items);
+    migrateLegacyAcquisition(this.items.getFirst());
   }
 
   @Override
@@ -127,5 +130,13 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
   @Override
   public void removeComponentsFromTag(ValueOutput output) {
     output.discard("Items");
+  }
+
+  private void migrateLegacyAcquisition(ItemStack stack) {
+    if (this.level != null && this.level.isClientSide()) return;
+    if (!HeirloomsComponentMigration.hasLegacyComponents(stack)) return;
+    if (HeirloomsComponentMigration.migrateLegacyAcquisition(stack)) {
+      this.inventoryChanged();
+    }
   }
 }

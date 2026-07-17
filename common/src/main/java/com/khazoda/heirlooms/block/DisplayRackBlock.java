@@ -6,8 +6,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -21,6 +25,14 @@ public class DisplayRackBlock extends DisplayBlock {
 
   public DisplayRackBlock(Properties properties) {
     super(properties);
+  }
+
+  public static BlockBehaviour.Properties defaultProperties(BlockBehaviour.Properties properties) {
+    return DisplayBlock.defaultProperties(properties)
+        .strength(1.5F, 4.0F)
+        .mapColor(MapColor.WOOD)
+        .instrument(NoteBlockInstrument.BASS)
+        .sound(SoundType.WOOD);
   }
 
   @Override

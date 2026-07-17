@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
@@ -32,6 +33,13 @@ public abstract class DisplayBlock extends BaseEntityBlock {
   protected DisplayBlock(Properties properties) {
     super(properties);
     this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+  }
+
+  public static BlockBehaviour.Properties defaultProperties(BlockBehaviour.Properties properties) {
+    return properties
+        .noOcclusion()
+        .isSuffocating((_, _, _) -> false)
+        .isViewBlocking((_, _, _) -> false);
   }
 
   @Override

@@ -1,7 +1,5 @@
 package com.khazoda.heirlooms;
 
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,9 +16,6 @@ public class TooltipHandler implements ItemTooltipCallback {
 
   @Override
   public void getTooltip(ItemStack stack, Item.TooltipContext tooltipContext, TooltipFlag tooltipFlag, List<Component> list) {
-    boolean pressedCTRL = InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_LCONTROL);
-    boolean pressedALT = InputConstants.isKeyDown(Minecraft.getInstance().getWindow(), InputConstants.KEY_LALT);
-
-    CommonTooltipHandler.handleTooltip(stack, list, tooltipFlag, pressedCTRL, pressedALT);
+    CommonTooltipHandler.handleTooltip(stack, list, tooltipFlag);
   }
 }

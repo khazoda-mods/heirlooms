@@ -28,9 +28,6 @@ import java.util.List;
 public class ClientMixinGUI {
 
   @Unique
-  private final Minecraft heirlooms$minecraft = Minecraft.getInstance();
-
-  @Unique
   private static final int ORIGINAL_BROWN = 9068607;
   @Unique
   private static final int ORIGINAL_BLUE = 4157834;
@@ -38,6 +35,8 @@ public class ClientMixinGUI {
   private static final int HUD_GOLD = 0xFFD27D;
   @Unique
   private static final int HUD_SKY = 0x8ACEEB;
+  @Unique
+  private final Minecraft heirlooms$minecraft = Minecraft.getInstance();
 
   @Inject(at = @At("TAIL"), method = "extractRenderState")
   public void extractRenderState(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
@@ -65,7 +64,7 @@ public class ClientMixinGUI {
   private void heirlooms$renderHudExtras(GuiGraphicsExtractor guiGraphics, ItemStack stack) {
     Component name = stack.getHoverName();
     List<Component> dataLines = new ArrayList<>();
-    CommonTooltipHandler.handleTooltip(stack, dataLines, TooltipFlag.NORMAL, true, true);
+    CommonTooltipHandler.handleTooltipExpanded(stack, dataLines, TooltipFlag.NORMAL);
 
     for (int i = 0; i < dataLines.size(); i++) {
       Component line = dataLines.get(i);
