@@ -5,14 +5,7 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
-    "MixinAbstractContainerMenu",
-    "MixinCraftingMenu",
-    "MixinEnchantmentMenu",
-    "MixinGrindstoneMenu",
-    "MixinItemCombinerMenu",
-    "MixinInventory",
-    "MixinResultSlot",
-    "MixinSmithingMenu"
+    "MixinAbstractContainerMenu", "MixinEnchantmentMenu", "MixinGrindstoneMenu", "MixinInventory"
   ],
   "client": [
     "ClientMixinGUI"

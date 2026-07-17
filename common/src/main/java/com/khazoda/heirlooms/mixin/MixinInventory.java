@@ -16,33 +16,49 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Inventory.class)
 public class MixinInventory {
-
   @Final
   @Shadow
   public Player player;
 
+  @Unique
+  private boolean heirlooms$capturedAddStack;
+
+  @Unique
+  private boolean heirlooms$capturedAddAtIndex;
+
   @Inject(method = "add(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("HEAD"))
-  private void heirlooms$onAddItem(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-    heirlooms$capture(stack);
+  private void heirlooms$captureAdd(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
+    this.heirlooms$capturedAddStack = heirlooms$capture(itemStack);
+  }
+
+  @Inject(method = "add(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("RETURN"))
+  private void heirlooms$rollbackAdd(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
+    if (this.heirlooms$capturedAddStack && !cir.getReturnValue()) {
+      SlotResultModifier.removeCraftedItem(itemStack);
+    }
+    this.heirlooms$capturedAddStack = false;
   }
 
   @Inject(method = "add(ILnet/minecraft/world/item/ItemStack;)Z", at = @At("HEAD"))
-  private void heirlooms$onAddItemAtIndex(int slot, ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-    heirlooms$capture(stack);
+  private void heirlooms$captureAddAtIndex(int slot, ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
+    this.heirlooms$capturedAddAtIndex = heirlooms$capture(itemStack);
+  }
+
+  @Inject(method = "add(ILnet/minecraft/world/item/ItemStack;)Z", at = @At("RETURN"))
+  private void heirlooms$rollbackAddAtIndex(int slot, ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
+    if (this.heirlooms$capturedAddAtIndex && !cir.getReturnValue()) {
+      SlotResultModifier.removeCraftedItem(itemStack);
+    }
+    this.heirlooms$capturedAddAtIndex = false;
   }
 
   @Inject(method = "setItem", at = @At("HEAD"))
-  private void heirlooms$onSetItem(int slot, ItemStack stack, CallbackInfo ci) {
-    heirlooms$capture(stack);
+  private void heirlooms$captureSetItem(int slot, ItemStack itemStack, CallbackInfo ci) {
+    heirlooms$capture(itemStack);
   }
 
   @Unique
-  private void heirlooms$capture(ItemStack stack) {
-    if (stack != null && !stack.isEmpty()) {
-      Player capturingPlayer = HeirloomsState.getCapturingPlayer();
-      if (capturingPlayer != null && capturingPlayer == this.player) {
-        SlotResultModifier.handleCraftedItem(capturingPlayer, stack);
-      }
-    }
+  private boolean heirlooms$capture(ItemStack stack) {
+    return HeirloomsState.isCapturing(this.player) && HeirloomsState.captureCrafted(stack);
   }
 }

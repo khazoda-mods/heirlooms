@@ -9,15 +9,13 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/* FOR Enchanting TABLE */
-/* Targets player pressing the button to enchant their item  */
 @Mixin(EnchantmentMenu.class)
 public class MixinEnchantmentMenu {
   @Inject(method = "clickMenuButton", at = @At("RETURN"))
-  private void heirlooms$onEnchanted(Player player, int id, CallbackInfoReturnable<Boolean> cir) {
+  private void heirlooms$onEnchanted(Player player, int buttonId, CallbackInfoReturnable<Boolean> cir) {
+    if (!cir.getReturnValue()) return;
+
     Slot slot = ((EnchantmentMenu) (Object) this).getSlot(0);
-    if (slot.hasItem()) {
-      SlotResultModifier.handleEnchantedItem(player, slot.getItem());
-    }
+    SlotResultModifier.handleEnchantedItem(player, slot.getItem());
   }
 }
