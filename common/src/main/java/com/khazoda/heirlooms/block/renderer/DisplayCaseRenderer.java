@@ -16,19 +16,21 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 
 public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlockEntity, DisplayRenderState> {
 
   private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
-  private static final org.joml.Quaternionf[] ROTATIONS = new org.joml.Quaternionf[4];
-
-  static {
-    ROTATIONS[0] = Axis.YP.rotationDegrees(0).mul(Axis.XP.rotationDegrees(90.0F));   // South
-    ROTATIONS[1] = Axis.YP.rotationDegrees(90).mul(Axis.XP.rotationDegrees(90.0F));  // West
-    ROTATIONS[2] = Axis.YP.rotationDegrees(180).mul(Axis.XP.rotationDegrees(90.0F)); // North
-    ROTATIONS[3] = Axis.YP.rotationDegrees(270).mul(Axis.XP.rotationDegrees(90.0F)); // East
-  }
+  private static final Quaternionf[] ROTATIONS = {
+      Axis.YP.rotationDegrees(180).mul(Axis.XP.rotationDegrees(90.0F)), // South
+      Axis.YP.rotationDegrees(90).mul(Axis.XP.rotationDegrees(90.0F)),  // West
+      Axis.YP.rotationDegrees(0).mul(Axis.XP.rotationDegrees(90.0F)),   // North
+      Axis.YP.rotationDegrees(270).mul(Axis.XP.rotationDegrees(90.0F)) // East
+  };
 
   private final BlockModelResolver blockModelResolver;
   private final ItemModelResolver itemModelResolver;
@@ -52,13 +54,16 @@ public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlock
     renderState.item = null;
 
     ItemStack stack = blockEntity.getItem(0);
-    if (!stack.isEmpty()) {
-      if (stack.getItem() instanceof BlockItem blockItem) {
-        this.blockModelResolver.update(renderState.block, blockItem.getBlock().defaultBlockState(), BLOCK_DISPLAY_CONTEXT);
-      } else {
-        renderState.item = new ItemStackRenderState();
-        this.itemModelResolver.updateForTopItem(renderState.item, stack, ItemDisplayContext.FIXED, blockEntity.getLevel(), null, 0);
-      }
+    if (stack.isEmpty()) return;
+
+    if (stack.getItem() instanceof BlockItem blockItem) {
+      BlockState state = blockItem.getBlock().defaultBlockState();
+      if (state.hasProperty(BlockStateProperties.ATTACH_FACE))
+        state = state.setValue(BlockStateProperties.ATTACH_FACE, AttachFace.FLOOR);
+      this.blockModelResolver.update(renderState.block, state, BLOCK_DISPLAY_CONTEXT);
+    } else {
+      renderState.item = new ItemStackRenderState();
+      this.itemModelResolver.updateForTopItem(renderState.item, stack, ItemDisplayContext.FIXED, blockEntity.getLevel(), null, 0);
     }
   }
 
@@ -79,16 +84,10 @@ public class DisplayCaseRenderer implements BlockEntityRenderer<DisplayCaseBlock
 
       poseStack.translate(-0.5F, -0.5F, -0.5F);
       renderState.block.submit(poseStack, nodeCollector, renderState.lightCoords, OverlayTexture.NO_OVERLAY, 0);
-    } else if (renderState.item != null) {
+    } else {
       poseStack.translate(Parameters.DISPLAY_CASE.ITEM.X_OFFSET, Parameters.DISPLAY_CASE.ITEM.Y_OFFSET, Parameters.DISPLAY_CASE.ITEM.Z_OFFSET);
 
-      int dirIndex = renderState.facing.get2DDataValue();
-      if (dirIndex >= 0 && dirIndex < 4) {
-        poseStack.mulPose(ROTATIONS[dirIndex]);
-      } else {
-        poseStack.mulPose(Axis.YP.rotationDegrees(-renderState.facing.toYRot() + 180));
-        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-      }
+      poseStack.mulPose(ROTATIONS[renderState.facing.get2DDataValue()]);
 
       float scale = Parameters.DISPLAY_CASE.ITEM.SCALE;
       poseStack.scale(scale, scale, scale);

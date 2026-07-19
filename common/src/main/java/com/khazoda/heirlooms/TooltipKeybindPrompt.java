@@ -2,15 +2,32 @@ package com.khazoda.heirlooms;
 
 import com.khazoda.core.keybind.KhazKeybind;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 
 import java.util.Locale;
 
 public final class TooltipKeybindPrompt {
+  private static final String SMALL_CAPS = "ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
+
   private TooltipKeybindPrompt() {
   }
 
   public static Component create(KhazKeybind keybind, int color) {
-    return Component.literal("[" + compactKeyLabel(keybind.boundInputLabel().getString()) + "]").withColor(color);
+    return Component.literal("[" + compactKeyLabel(keybind.boundInputLabel()) + "]").withColor(color);
+  }
+
+  private static String compactKeyLabel(Component keyLabel) {
+    if (keyLabel.getContents() instanceof TranslatableContents translatable) {
+      String arrow = switch (translatable.getKey()) {
+        case "key.keyboard.left" -> "←";
+        case "key.keyboard.up" -> "↑";
+        case "key.keyboard.right" -> "→";
+        case "key.keyboard.down" -> "↓";
+        default -> null;
+      };
+      if (arrow != null) return arrow;
+    }
+    return compactKeyLabel(keyLabel.getString());
   }
 
   private static String compactKeyLabel(String keyLabel) {
@@ -36,41 +53,13 @@ public final class TooltipKeybindPrompt {
 
   private static String toSmallCaps(String text) {
     StringBuilder result = new StringBuilder(text.length());
-    for (char character : text.toUpperCase(Locale.ROOT).toCharArray()) {
-      result.append(smallCap(character));
-    }
+    String uppercase = text.toUpperCase(Locale.ROOT);
+    for (int i = 0; i < uppercase.length(); i++)
+      result.append(smallCap(uppercase.charAt(i)));
     return result.toString();
   }
 
   private static char smallCap(char character) {
-    return switch (character) {
-      case 'A' -> 'ᴀ';
-      case 'B' -> 'ʙ';
-      case 'C' -> 'ᴄ';
-      case 'D' -> 'ᴅ';
-      case 'E' -> 'ᴇ';
-      case 'F' -> 'ғ';
-      case 'G' -> 'ɢ';
-      case 'H' -> 'ʜ';
-      case 'I' -> 'ɪ';
-      case 'J' -> 'ᴊ';
-      case 'K' -> 'ᴋ';
-      case 'L' -> 'ʟ';
-      case 'M' -> 'ᴍ';
-      case 'N' -> 'ɴ';
-      case 'O' -> 'ᴏ';
-      case 'P' -> 'ᴘ';
-      case 'Q' -> 'ǫ';
-      case 'R' -> 'ʀ';
-      case 'S' -> 's';
-      case 'T' -> 'ᴛ';
-      case 'U' -> 'ᴜ';
-      case 'V' -> 'ᴠ';
-      case 'W' -> 'ᴡ';
-      case 'X' -> 'x';
-      case 'Y' -> 'ʏ';
-      case 'Z' -> 'ᴢ';
-      default -> character;
-    };
+    return character >= 'A' && character <= 'Z' ? SMALL_CAPS.charAt(character - 'A') : character;
   }
 }

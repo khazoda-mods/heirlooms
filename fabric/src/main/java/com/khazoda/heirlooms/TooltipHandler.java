@@ -16,6 +16,6 @@ public class TooltipHandler implements ItemTooltipCallback {
 
   @Override
   public void getTooltip(ItemStack stack, Item.TooltipContext tooltipContext, TooltipFlag tooltipFlag, List<Component> list) {
-    CommonTooltipHandler.handleTooltip(stack, list, tooltipFlag);
+    CommonTooltipHandler.handleTooltip(stack, list);
   }
 }

@@ -36,22 +36,28 @@ public final class MainRegistry {
   public static final Entry<DataComponentType<String>> ACQUIRED_BY = component("acquired_by");
   public static final Entry<DataComponentType<Integer>> ACQUISITION_X = intComponent("acquisition_x");
   public static final Entry<DataComponentType<Integer>> ACQUISITION_Z = intComponent("acquisition_z");
+  public static final Entry<DataComponentType<String>> ACQUISITION_DIMENSION = component("acquisition_dimension");
   public static final Entry<DataComponentType<String>> ENCHANTED_TIMESTAMP = component("enchanted_timestamp");
   public static final Entry<DataComponentType<String>> ENCHANTED_BY = component("enchanted_by");
   public static final Entry<DataComponentType<Integer>> ENCHANTED_X = intComponent("enchanted_x");
   public static final Entry<DataComponentType<Integer>> ENCHANTED_Z = intComponent("enchanted_z");
+  public static final Entry<DataComponentType<String>> ENCHANTED_DIMENSION = component("enchanted_dimension");
+  public static final Entry<DataComponentType<String>> NAMED_FIRST = component("named_first");
+  public static final Entry<DataComponentType<String>> NAMED_FIRST_TIMESTAMP = component("named_first_timestamp");
+  public static final Entry<DataComponentType<String>> NAMED_FIRST_BY = component("named_first_by");
+  public static final Entry<DataComponentType<Integer>> NAMED_FIRST_X = intComponent("named_first_x");
+  public static final Entry<DataComponentType<Integer>> NAMED_FIRST_Z = intComponent("named_first_z");
+  public static final Entry<DataComponentType<String>> NAMED_FIRST_DIMENSION = component("named_first_dimension");
 
-  // Todo: remove alongside other migration code once period is over
+  // Kept registered so old items deserialize before HeirloomsComponentMigration runs
   public static final Entry<DataComponentType<String>> LEGACY_CRAFTED_TIMESTAMP = component("crafted_timestamp");
   public static final Entry<DataComponentType<String>> LEGACY_CRAFTED_BY = component("crafted_by");
 
   private static final List<Supplier<? extends ItemLike>> TAB = new ArrayList<>();
   public static final BlockEntry<DisplayCaseBlock, BlockItem> DISPLAY_CASE = reg.blockWithItem("display_case", (key, props) -> new DisplayCaseBlock(DisplayCaseBlock.defaultProperties(props)), BlockItem::new).addToTab(TAB);
   public static final Entry<BlockEntityType<DisplayCaseBlockEntity>> DISPLAY_CASE_BE = blockEntity("display_case", DisplayCaseBlockEntity::new, DISPLAY_CASE);
-
   public static final BlockEntry<DisplayRackBlock, BlockItem> DISPLAY_RACK = reg.blockWithItem("display_rack", (key, props) -> new DisplayRackBlock(DisplayRackBlock.defaultProperties(props)), BlockItem::new).addToTab(TAB);
   public static final Entry<BlockEntityType<DisplayRackBlockEntity>> DISPLAY_RACK_BE = blockEntity("display_rack", DisplayRackBlockEntity::new, DISPLAY_RACK);
-
   public static final Entry<CreativeModeTab> HEIRLOOMS_TAB = reg.tab("main", () -> new ItemStack(DISPLAY_CASE.get()));
 
   private static boolean initialized;

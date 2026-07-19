@@ -1,35 +1,38 @@
 package com.khazoda.heirlooms;
 
+import com.khazoda.heirlooms.mixinutils.SlotResultModifier;
 import com.khazoda.heirlooms.registry.MainRegistry;
 import net.minecraft.world.item.ItemStack;
 
-// Todo: Remove some day once it's unlikely anyone will need to migrate any more
-// search for usages in other classes as there are a few that will need nixing
+// Automatic crafted_* migration. Keep this and the legacy component registrations
+// together until releases containing the old component are old enough to stop supporting.
 public final class HeirloomsComponentMigration {
   private HeirloomsComponentMigration() {
   }
 
-  public static boolean hasLegacyComponents(ItemStack stack) {
+  public static boolean isLegacyAcquisition(ItemStack stack) {
     return stack != null
         && !stack.isEmpty()
-        && (stack.has(MainRegistry.LEGACY_CRAFTED_TIMESTAMP.get()) || stack.has(MainRegistry.LEGACY_CRAFTED_BY.get()));
+        && stack.has(MainRegistry.LEGACY_CRAFTED_TIMESTAMP.get())
+        && stack.has(MainRegistry.LEGACY_CRAFTED_BY.get())
+        && !stack.has(MainRegistry.ACQUIRED_TIMESTAMP.get())
+        && !stack.has(MainRegistry.ACQUIRED_BY.get())
+        && !stack.has(MainRegistry.ACQUISITION_KIND.get())
+        && !stack.has(MainRegistry.ACQUISITION_X.get())
+        && !stack.has(MainRegistry.ACQUISITION_Z.get())
+        && !stack.has(MainRegistry.ACQUISITION_DIMENSION.get());
   }
 
   public static boolean migrateLegacyAcquisition(ItemStack stack) {
-    if (stack == null || stack.isEmpty()) return false;
+    if (!isLegacyAcquisition(stack)) return false;
 
-    // crafted_* became acquired_* when acquisition types expanded beyond crafting.
     String legacyTimestamp = stack.get(MainRegistry.LEGACY_CRAFTED_TIMESTAMP.get());
     String legacyBy = stack.get(MainRegistry.LEGACY_CRAFTED_BY.get());
-    if (legacyTimestamp == null && legacyBy == null) return false;
+    if (legacyTimestamp == null || legacyBy == null) return false;
 
-    if (legacyTimestamp != null && !stack.has(MainRegistry.ACQUIRED_TIMESTAMP.get())) {
-      stack.set(MainRegistry.ACQUIRED_TIMESTAMP.get(), legacyTimestamp);
-    }
-    if (legacyBy != null && !stack.has(MainRegistry.ACQUIRED_BY.get())) {
-      stack.set(MainRegistry.ACQUIRED_BY.get(), legacyBy);
-    }
-
+    stack.set(MainRegistry.ACQUIRED_TIMESTAMP.get(), legacyTimestamp);
+    stack.set(MainRegistry.ACQUIRED_BY.get(), legacyBy);
+    stack.set(MainRegistry.ACQUISITION_KIND.get(), SlotResultModifier.ACQUISITION_CRAFTED);
     stack.remove(MainRegistry.LEGACY_CRAFTED_TIMESTAMP.get());
     stack.remove(MainRegistry.LEGACY_CRAFTED_BY.get());
     return true;
