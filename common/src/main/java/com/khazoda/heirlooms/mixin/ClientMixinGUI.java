@@ -30,8 +30,6 @@ public class ClientMixinGUI {
   @Unique
   private static final int ICON_SHEET_WIDTH = 32;
   @Unique
-  private static final float HUD_TEXT_SCALE = 0.8F;
-  @Unique
   private final Minecraft heirlooms$minecraft = Minecraft.getInstance();
 
   @Inject(at = @At("TAIL"), method = "extractRenderState")
@@ -59,14 +57,10 @@ public class ClientMixinGUI {
     int centerX = this.heirlooms$minecraft.getWindow().getGuiScaledWidth() / 2;
     int startY = (this.heirlooms$minecraft.getWindow().getGuiScaledHeight() / 2) + 35 - this.heirlooms$minecraft.font.lineHeight - 2;
 
-    int nameWidth = Math.round(this.heirlooms$minecraft.font.width(name) * HUD_TEXT_SCALE);
-    int itemIconWidth = 16;
-    int gap = 4;
-    int totalWidth = itemIconWidth + gap + nameWidth;
-    int groupStartX = centerX - (totalWidth / 2);
+    int groupStartX = centerX - (20 + this.heirlooms$minecraft.font.width(name)) / 2;
 
     guiGraphics.item(stack, groupStartX, startY - 4);
-    heirlooms$renderScaledLine(guiGraphics, name, 0, groupStartX + itemIconWidth + gap, startY, 0);
+    heirlooms$renderLine(guiGraphics, name, 0, groupStartX + 20, startY);
 
     int sectionCount = (acquisitionLines.isEmpty() ? 0 : 1) + (namingLines.isEmpty() ? 0 : 1) + (enchantmentLines.isEmpty() ? 0 : 1);
     if (sectionCount == 0) return;
@@ -75,11 +69,10 @@ public class ClientMixinGUI {
     if (sectionCount == 3) {
       heirlooms$renderThreeSections(guiGraphics, acquisitionLines, namingLines, enchantmentLines, centerX, baseDataY);
     } else if (sectionCount == 2) {
-      int spineGap = 6;
       List<Component> left = acquisitionLines.isEmpty() ? namingLines : acquisitionLines;
       List<Component> right = enchantmentLines.isEmpty() ? namingLines : enchantmentLines;
-      heirlooms$renderLines(guiGraphics, left, centerX - spineGap, baseDataY, 1.0F);
-      heirlooms$renderLines(guiGraphics, right, centerX + spineGap, baseDataY, 0.0F);
+      heirlooms$renderLines(guiGraphics, left, centerX - 6, baseDataY, 1.0F);
+      heirlooms$renderLines(guiGraphics, right, centerX + 6, baseDataY, 0.0F);
     } else {
       List<Component> lines = !acquisitionLines.isEmpty() ? acquisitionLines : !namingLines.isEmpty() ? namingLines : enchantmentLines;
       heirlooms$renderLines(guiGraphics, lines, centerX, baseDataY, 0.5F);
@@ -89,14 +82,14 @@ public class ClientMixinGUI {
   @Unique
   private void heirlooms$renderThreeSections(GuiGraphicsExtractor guiGraphics, List<Component> acquisitionLines, List<Component> namingLines,
                                              List<Component> enchantmentLines, int centerX, int startY) {
-    int gap = 12;
+    int gap = 8;
     int acquisitionWidth = heirlooms$maxWidth(acquisitionLines);
     int namingWidth = heirlooms$maxWidth(namingLines);
     int enchantmentWidth = heirlooms$maxWidth(enchantmentLines);
     int totalWidth = acquisitionWidth + namingWidth + enchantmentWidth + gap * 2;
     if (totalWidth > this.heirlooms$minecraft.getWindow().getGuiScaledWidth() - 16) {
-      int y = heirlooms$renderLines(guiGraphics, acquisitionLines, centerX, startY, 0.5F) + 4;
-      y = heirlooms$renderLines(guiGraphics, namingLines, centerX, y, 0.5F) + 4;
+      int y = heirlooms$renderLines(guiGraphics, acquisitionLines, centerX, startY, 0.5F) + 2;
+      y = heirlooms$renderLines(guiGraphics, namingLines, centerX, y, 0.5F) + 2;
       heirlooms$renderLines(guiGraphics, enchantmentLines, centerX, y, 0.5F);
       return;
     }
@@ -113,18 +106,18 @@ public class ClientMixinGUI {
   private int heirlooms$maxWidth(List<Component> lines) {
     int width = 0;
     for (int i = 0; i < lines.size(); i++)
-      width = Math.max(width, Math.round(heirlooms$lineWidth(lines.get(i), i) * HUD_TEXT_SCALE));
+      width = Math.max(width, heirlooms$lineWidth(lines.get(i), i));
     return width;
   }
 
   @Unique
   private int heirlooms$renderLines(GuiGraphicsExtractor guiGraphics, List<Component> lines, int x, int startY, float alignment) {
     int y = startY;
-    int lineHeight = Math.round((this.heirlooms$minecraft.font.lineHeight + 2) * HUD_TEXT_SCALE);
+    int lineHeight = this.heirlooms$minecraft.font.lineHeight + 1;
     for (int i = 0; i < lines.size(); i++) {
       Component line = lines.get(i);
-      int localX = alignment == 0.0F ? 0 : -(int) (heirlooms$lineWidth(line, i) * alignment);
-      heirlooms$renderScaledLine(guiGraphics, line, i, x, y, localX);
+      int lineX = alignment == 0.0F ? x : x - (int) (heirlooms$lineWidth(line, i) * alignment);
+      heirlooms$renderLine(guiGraphics, line, i, lineX, y);
       y += lineHeight;
     }
     return y;
@@ -146,21 +139,16 @@ public class ClientMixinGUI {
   }
 
   @Unique
-  private void heirlooms$renderScaledLine(GuiGraphicsExtractor guiGraphics, Component text, int index, int x, int y, int localX) {
-    guiGraphics.pose().pushMatrix();
-    guiGraphics.pose().translate(x, y);
-    guiGraphics.pose().scale(HUD_TEXT_SCALE, HUD_TEXT_SCALE);
-
+  private void heirlooms$renderLine(GuiGraphicsExtractor guiGraphics, Component text, int index, int x, int y) {
     int iconU = heirlooms$iconU(text, index);
     if (iconU >= 0) {
       TextColor textColor = text.getStyle().getColor();
       int color = textColor == null ? -1 : 0xFF000000 | textColor.getValue();
-      guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXT_ICONS, localX + 1, 1, iconU, 0, 8, 8, ICON_SHEET_WIDTH, 8, ARGB.scaleRGB(color, 0.25F));
-      guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXT_ICONS, localX, 0, iconU, 0, 8, 8, ICON_SHEET_WIDTH, 8, color);
-      localX += 12;
+      guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXT_ICONS, x + 1, y + 1, iconU, 0, 8, 8, ICON_SHEET_WIDTH, 8, ARGB.scaleRGB(color, 0.25F));
+      guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXT_ICONS, x, y, iconU, 0, 8, 8, ICON_SHEET_WIDTH, 8, color);
+      x += 12;
     }
 
-    guiGraphics.text(this.heirlooms$minecraft.font, text, localX, 0, 0xFFFFFFFF, true);
-    guiGraphics.pose().popMatrix();
+    guiGraphics.text(this.heirlooms$minecraft.font, text, x, y, 0xFFFFFFFF, true);
   }
 }
