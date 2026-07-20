@@ -97,6 +97,16 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
   }
 
   @Override
+  public boolean canPlaceItem(int slot, ItemStack stack) {
+    return false;
+  }
+
+  @Override
+  public boolean canTakeItem(Container into, int slot, ItemStack stack) {
+    return false;
+  }
+
+  @Override
   public void clearContent() {
     this.items.clear();
     this.inventoryChanged();
