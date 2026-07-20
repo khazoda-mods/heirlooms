@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.inventory.MerchantResultSlot;
@@ -69,7 +70,7 @@ public abstract class MixinAbstractContainerMenu {
 
   @Unique
   private void heirlooms$armOutputCapture(int slotIndex, Player player) {
-    if (slotIndex < 0 || (Object) this instanceof GrindstoneMenu) return;
+    if (slotIndex < 0 || (Object) this instanceof GrindstoneMenu || (Object) this instanceof EnchantmentMenu) return;
 
     try {
       Slot slot = this.getSlot(slotIndex);
