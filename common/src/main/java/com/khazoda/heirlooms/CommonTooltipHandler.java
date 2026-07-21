@@ -64,19 +64,19 @@ public final class CommonTooltipHandler {
     TooltipData data = TooltipData.from(stack);
 
     if (data.hasValidAcquisition()) {
-      addTimestampTooltip(acquisitionTooltip, data.acquiredAt(), data.acquiredBy(), acquisitionTranslationKey(data.acquisitionKind()), HUD_CRAFTED_TEXT_COLOR);
+      addExpandedTooltip(acquisitionTooltip, data.acquiredAt(), data.acquiredBy(), acquisitionIcon(data.acquisitionKind()), HUD_CRAFTED_TEXT_COLOR);
       if (showLocation)
         addLocationTooltip(acquisitionTooltip, data.acquisitionX(), data.acquisitionZ(), data.acquisitionDimension(), HUD_CRAFTED_TEXT_COLOR);
     }
 
     if (data.hasValidFirstNaming()) {
-      addTimestampTooltip(namingTooltip, data.namedFirstAt(), data.namedFirstBy(), "tooltip.heirlooms.first_named_by", HUD_NAMED_TEXT_COLOR);
+      addExpandedTooltip(namingTooltip, data.namedFirstAt(), data.namedFirstBy(), "first_named", HUD_NAMED_TEXT_COLOR);
       if (showLocation)
         addLocationTooltip(namingTooltip, data.namedFirstX(), data.namedFirstZ(), data.namedFirstDimension(), HUD_NAMED_TEXT_COLOR);
     }
 
     if (data.hasValidEnchantment()) {
-      addTimestampTooltip(enchantmentTooltip, data.enchantedAt(), data.enchantedBy(), "tooltip.heirlooms.enchanted_by", HUD_ENCHANTED_TEXT_COLOR);
+      addExpandedTooltip(enchantmentTooltip, data.enchantedAt(), data.enchantedBy(), "enchanted", HUD_ENCHANTED_TEXT_COLOR);
       if (showLocation)
         addLocationTooltip(enchantmentTooltip, data.enchantedX(), data.enchantedZ(), data.enchantedDimension(), HUD_ENCHANTED_TEXT_COLOR);
     }
@@ -105,6 +105,12 @@ public final class CommonTooltipHandler {
     return SlotResultModifier.ACQUISITION_CRAFTED.equals(acquisitionKind) ? "tooltip.heirlooms.crafted_by" : "tooltip.heirlooms.acquired_by";
   }
 
+  private static String acquisitionIcon(String acquisitionKind) {
+    if (SlotResultModifier.ACQUISITION_CRAFTED.equals(acquisitionKind)) return "crafted";
+    if (SlotResultModifier.ACQUISITION_LOOTED.equals(acquisitionKind)) return "looted";
+    return SlotResultModifier.ACQUISITION_BOUGHT.equals(acquisitionKind) ? "bought" : "acquired";
+  }
+
   private static Locale getCachedLocale() {
     try {
       String languageCode = net.minecraft.client.Minecraft.getInstance().getLanguageManager().getSelected();
@@ -121,6 +127,15 @@ public final class CommonTooltipHandler {
 
   private static void addTimestampTooltip(List<Component> tooltip, ZonedDateTime timestamp, String creator, String translationKey, int color) {
     tooltip.add(Component.translatable(translationKey, creator).withColor(color));
+    addDateTooltip(tooltip, timestamp, color);
+  }
+
+  private static void addExpandedTooltip(List<Component> tooltip, ZonedDateTime timestamp, String playerName, String icon, int color) {
+    tooltip.add(Component.literal(playerName).withStyle(style -> style.withColor(color).withInsertion(icon)));
+    addDateTooltip(tooltip, timestamp, color);
+  }
+
+  private static void addDateTooltip(List<Component> tooltip, ZonedDateTime timestamp, int color) {
     Locale locale = getCachedLocale();
     String monthName = timestamp.getMonth().getDisplayName(TextStyle.FULL, locale);
     tooltip.add(Component.translatable("tooltip.heirlooms.date", getFormattedDay(timestamp.getDayOfMonth(), locale), timestamp.getMonthValue(), monthName, timestamp.getYear()).withColor(color));
