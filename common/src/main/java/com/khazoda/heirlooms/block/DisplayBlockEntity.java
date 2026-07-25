@@ -14,7 +14,6 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,19 +23,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class DisplayBlockEntity extends BlockEntity implements Container {
   private final NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
-  private boolean legacyMigrationPending;
 
   protected DisplayBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
     super(type, pos, state);
-  }
-
-  @Override
-  public void setLevel(Level level) {
-    super.setLevel(level);
-    if (this.legacyMigrationPending) {
-      this.legacyMigrationPending = false;
-      if (!level.isClientSide()) level.blockEntityChanged(this.worldPosition);
-    }
   }
 
   private void inventoryChanged() {
@@ -117,7 +106,6 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
     super.loadAdditional(input);
     this.items.clear();
     ContainerHelper.loadAllItems(input, this.items);
-    this.migrateLoadedItem();
   }
 
   @Override
@@ -140,7 +128,7 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
   protected void applyImplicitComponents(DataComponentGetter componentGetter) {
     super.applyImplicitComponents(componentGetter);
     componentGetter.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY).copyInto(this.items);
-    this.migrateLoadedItem();
+    HeirloomsComponentMigration.migrateLegacyAcquisition(this.items.getFirst());
   }
 
   @Override
@@ -152,11 +140,5 @@ public abstract class DisplayBlockEntity extends BlockEntity implements Containe
   @Override
   public void removeComponentsFromTag(ValueOutput output) {
     output.discard("Items");
-  }
-
-  private void migrateLoadedItem() {
-    if (!HeirloomsComponentMigration.migrateLegacyAcquisition(this.items.getFirst())) return;
-    if (this.level == null) this.legacyMigrationPending = true;
-    else if (!this.level.isClientSide()) this.level.blockEntityChanged(this.worldPosition);
   }
 }
