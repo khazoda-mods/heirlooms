@@ -6,16 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ContainerInput;
-import net.minecraft.world.inventory.EnchantmentMenu;
-import net.minecraft.world.inventory.GrindstoneMenu;
-import net.minecraft.world.inventory.MerchantMenu;
-import net.minecraft.world.inventory.MerchantResultSlot;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.ResultSlot;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -61,8 +52,27 @@ public abstract class MixinAbstractContainerMenu {
     }
 
     try {
-      heirlooms$armOutputCapture(slotIndex, player);
+      if (containerInput != ContainerInput.QUICK_MOVE) heirlooms$armOutputCapture(slotIndex, player);
       original.call(menu, slotIndex, buttonNum, containerInput, player);
+    } finally {
+      HeirloomsState.clearCapture();
+    }
+  }
+
+  @WrapOperation(
+      method = "doClick",
+      at = @At(
+          value = "INVOKE",
+          target = "Lnet/minecraft/world/inventory/AbstractContainerMenu;quickMoveStack(Lnet/minecraft/world/entity/player/Player;I)Lnet/minecraft/world/item/ItemStack;"
+      )
+  )
+  private ItemStack heirlooms$captureQuickMoveOutput(AbstractContainerMenu menu, Player player, int slotIndex, Operation<ItemStack> original) {
+    if (player == null || player.level().isClientSide()) return original.call(menu, player, slotIndex);
+
+    HeirloomsState.clearCapture();
+    try {
+      heirlooms$armOutputCapture(slotIndex, player);
+      return original.call(menu, player, slotIndex);
     } finally {
       HeirloomsState.clearCapture();
     }
@@ -75,10 +85,10 @@ public abstract class MixinAbstractContainerMenu {
     try {
       Slot slot = this.getSlot(slotIndex);
       ItemStack output = slot.getItem();
-      if (output.isEmpty()) return;
+      if (output.isEmpty() || output.getMaxStackSize() != 1) return;
 
       if ((Object) this instanceof AnvilMenu) {
-        if (slotIndex != AnvilMenu.RESULT_SLOT || output.getMaxStackSize() != 1) return;
+        if (slotIndex != AnvilMenu.RESULT_SLOT) return;
         ItemStack input = this.getSlot(AnvilMenu.INPUT_SLOT).getItem();
         ItemStack addition = this.getSlot(AnvilMenu.ADDITIONAL_SLOT).getItem();
         var customName = output.get(DataComponents.CUSTOM_NAME);
